@@ -4,7 +4,7 @@ import os
 import time
 
 # 1. 頁面基本設定
-st.set_page_config(page_title="Kenny真心話大冒險", page_icon="💡", layout="centered")
+st.set_page_config(page_title="獅群真心話大冒險", page_icon="💡", layout="centered")
 
 # 全域背景圖片網址
 GLOBAL_BG_URL = "https://images.pexels.com/photos/33828271/pexels-photo-33828271.jpeg"
@@ -22,7 +22,7 @@ warmup_questions = load_questions("warmup_questions.txt")
 formal_questions = load_questions("formal_questions.txt")
 
 # 3. UI 頂部與選單
-st.title("Kenny真心話大冒險")
+st.title("獅群真心話大冒險")
 
 selected_team = st.selectbox("請選擇組別：", ["第一組", "第二組", "第三組", "第四組"])
 selected_mode = st.radio("請選擇階段：", ["🧊 暖身題", "🎯 正式題"], horizontal=True)
@@ -33,7 +33,6 @@ st.markdown(f"""
 #MainMenu {{visibility: hidden;}}
 footer {{visibility: hidden;}}
 
-/* 背景遮罩維持 0.55 的濃度 */
 .stApp {{
     background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url("{GLOBAL_BG_URL}"); 
     background-size: cover; 
@@ -41,7 +40,6 @@ footer {{visibility: hidden;}}
     background-attachment: fixed;
 }}
 
-/* 大標題 */
 h1 {{
     font-size: 42px !important; 
     color: #FFFFFF !important; 
@@ -51,7 +49,6 @@ h1 {{
     margin-bottom: 30px !important;
 }}
 
-/* 標籤文字 (請選擇組別、請選擇階段) 統一為帶陰影的白字 */
 label[data-testid="stWidgetLabel"] p {{
     color: #FFFFFF !important; 
     font-size: 16px !important; 
@@ -60,7 +57,7 @@ label[data-testid="stWidgetLabel"] p {{
 }}
 
 /* ==================================================
-   🎯 統一前三個色塊 (1.下拉選單、2.階段選擇、3.抽題按鈕)
+   🎯 統一前三個色塊
    ================================================== */
 div[data-baseweb="select"] > div,
 div[role="radiogroup"],
@@ -72,14 +69,12 @@ button[kind="primary"] {{
     border-radius: 12px !important;
 }}
 
-/* [色塊 1] 下拉選單內部文字 */
 div[data-baseweb="select"] div[data-testid="stMarkdownContainer"] p {{
     color: #1E293B !important;
     font-size: 18px !important;
     font-weight: 800 !important;
 }}
 
-/* [色塊 2] 階段選擇 */
 div[role="radiogroup"] {{
     padding: 12px 20px !important; 
 }}
@@ -89,7 +84,6 @@ div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {{
     font-weight: 800 !important;
 }}
 
-/* 將圓形單選鈕強制改裝為超大方形 Checkbox (打勾框) */
 div[role="radiogroup"] label[data-baseweb="radio"] input + div {{
     width: 32px !important;  
     height: 32px !important;
@@ -119,7 +113,6 @@ div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div::after {{
     left: 10px;
 }}
 
-/* [色塊 3] 抽題按鈕 */
 button[kind="primary"] {{
     padding: 12px 0px !important;
 }}
@@ -158,7 +151,6 @@ div.stButton {{
 }}
 .hint-text {{color: #475569 !important; font-size: 20px !important;}}
 
-/* ✨ [魔法區] 純前端 CSS 骰子動畫，零延遲絕對滑順 ✨ */
 @keyframes roll-dice {{
     0%   {{ content: '⚀'; transform: rotate(0deg) scale(1); }}
     16%  {{ content: '⚂'; transform: rotate(15deg) scale(1.1); }}
@@ -218,7 +210,7 @@ shared_pools = get_shared_pools()
 def init_pools():
     for team in ["第一組", "第二組", "第三組", "第四組"]:
         if team not in shared_pools:
-            w_pool = list(range(1, len(warmup_questions))) if warmup_questions else []
+            w_pool = list(range(1, len(warmup_questions))) if warmup_questions and len(warmup_questions) > 1 else []
             f_pool = list(range(len(formal_questions))) if formal_questions else []
             random.shuffle(w_pool)
             random.shuffle(f_pool)
@@ -240,7 +232,6 @@ if draw_button_clicked:
     current_team_state = shared_pools[selected_team]
     
     if active_questions:
-        # 動畫階段：呼叫純前端 CSS 動畫，不僅不會卡，還省下了網路頻寬
         card_placeholder.markdown(
             f'<div class="question-card">'
             f'<div class="dice-anim"></div><br>'
@@ -248,36 +239,44 @@ if draw_button_clicked:
             f'</div>', 
             unsafe_allow_html=True
         )
-        # 讓前端的骰子轉 0.8 秒
         time.sleep(0.8)  
             
-        # 結算階段
-        if selected_mode == "🧊 暖身題":
-            if not current_team_state["warmup_q1_drawn"]:
-                selected_idx = 0
-                current_team_state["warmup_q1_drawn"] = True
+        # 結算階段 (加入 Auto-Heal 自我修復機制)
+        try:
+            if selected_mode == "🧊 暖身題":
+                # 防呆：如果暖身題只有 1 題，直接給第 0 題
+                if len(warmup_questions) <= 1:
+                    selected_idx = 0
+                elif not current_team_state["warmup_q1_drawn"]:
+                    selected_idx = 0
+                    current_team_state["warmup_q1_drawn"] = True
+                else:
+                    if len(current_team_state["warmup"]) == 0:
+                        pool = list(range(1, len(warmup_questions)))
+                        random.shuffle(pool)
+                        current_team_state["warmup"] = pool
+                    selected_idx = current_team_state["warmup"].pop()
             else:
-                if len(current_team_state["warmup"]) == 0:
-                    pool = list(range(1, len(warmup_questions)))
+                if len(current_team_state["formal"]) == 0:
+                    pool = list(range(len(formal_questions)))
                     random.shuffle(pool)
-                    current_team_state["warmup"] = pool
-                selected_idx = current_team_state["warmup"].pop()
-        else:
-            if len(current_team_state["formal"]) == 0:
-                pool = list(range(len(formal_questions)))
-                random.shuffle(pool)
-                current_team_state["formal"] = pool
-            selected_idx = current_team_state["formal"].pop()
+                    current_team_state["formal"] = pool
+                selected_idx = current_team_state["formal"].pop()
+                
+            q_num = selected_idx + 1
+            q_text = active_questions[selected_idx]
             
-        q_num = selected_idx + 1
-        q_text = active_questions[selected_idx]
-        
-        st.session_state.current_question = (
-            f'<div style="font-size: 16px; color: #64748B; font-weight: 800; margin-bottom: 15px; letter-spacing: 2px;">'
-            f'QUESTION {q_num:02d}'
-            f'</div>'
-            f'{q_text}'
-        )
+            st.session_state.current_question = (
+                f'<div style="font-size: 16px; color: #64748B; font-weight: 800; margin-bottom: 15px; letter-spacing: 2px;">'
+                f'QUESTION {q_num:02d}'
+                f'</div>'
+                f'{q_text}'
+            )
+        except IndexError:
+            # 🛡️ 觸發修復：若偵測到題庫數量變更導致 IndexError，系統立刻重置雲端快取並重整畫面
+            shared_pools.clear()
+            st.session_state.current_question = None
+            st.rerun()
     else:
         st.session_state.current_question = f"錯誤：找不到對應的題庫檔案。"
 
