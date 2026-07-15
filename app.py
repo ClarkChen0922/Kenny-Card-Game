@@ -4,7 +4,7 @@ import os
 import time
 
 # 1. 頁面基本設定
-st.set_page_config(page_title="Kenny真心話大冒險", page_icon="💡", layout="centered")
+st.set_page_config(page_title="獅群真心話大冒險", page_icon="💡", layout="centered")
 
 # 全域背景圖片網址
 GLOBAL_BG_URL = "https://images.pexels.com/photos/33828271/pexels-photo-33828271.jpeg"
@@ -22,7 +22,7 @@ warmup_questions = load_questions("warmup_questions.txt")
 formal_questions = load_questions("formal_questions.txt")
 
 # 3. UI 頂部與選單
-st.title("Kenny真心話大冒險")
+st.title("獅群真心話大冒險")
 
 selected_team = st.selectbox("請選擇組別：", ["第一組", "第二組", "第三組", "第四組"])
 selected_mode = st.radio("請選擇階段：", ["🧊 暖身題", "🎯 正式題"], horizontal=True)
@@ -60,4 +60,22 @@ label[data-testid="stWidgetLabel"] p {{
    🎯 統一前三個色塊
    ================================================== */
 div[data-baseweb="select"] > div,
-div[role="radiogroup
+div[role="radiogroup"],
+button[kind="primary"] {{
+    background-color: rgba(255, 255, 255, 0.85) !important; 
+    backdrop-filter: blur(12px) !important; 
+    -webkit-backdrop-filter: blur(12px) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.6) !important; 
+    border-radius: 12px !important;
+}}
+
+div[data-baseweb="select"] div[data-testid="stMarkdownContainer"] p {{
+    color: #1E293B !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+}}
+
+div[role="radiogroup"] {{
+    padding: 12px 20px !important; 
+}}
+div[role="radiogroup"] div[data
