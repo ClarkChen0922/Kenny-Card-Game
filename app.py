@@ -4,7 +4,7 @@ import os
 import time
 
 # 1. 頁面基本設定
-st.set_page_config(page_title=" Kenny真心話大冒險 ", page_icon="💡", layout="centered")
+st.set_page_config(page_title="獅群真心話大冒險", page_icon="💡", layout="centered")
 
 # 全域背景圖片網址
 GLOBAL_BG_URL = "https://images.pexels.com/photos/33828271/pexels-photo-33828271.jpeg"
@@ -22,12 +22,12 @@ warmup_questions = load_questions("warmup_questions.txt")
 formal_questions = load_questions("formal_questions.txt")
 
 # 3. UI 頂部與選單
-st.title(" Kenny真心話大冒險 ")
+st.title("獅群真心話大冒險")
 
 selected_team = st.selectbox("請選擇組別：", ["第一組", "第二組", "第三組", "第四組"])
 selected_mode = st.radio("請選擇階段：", ["🧊 暖身題", "🎯 正式題"], horizontal=True)
 
-# 4. 動態注入 CSS (達成前三個色塊完美統一，並實作自訂超大打勾框)
+# 4. 動態注入 CSS 
 st.markdown(f"""
 <style>
 #MainMenu {{visibility: hidden;}}
@@ -61,7 +61,6 @@ label[data-testid="stWidgetLabel"] p {{
 
 /* ==================================================
    🎯 統一前三個色塊 (1.下拉選單、2.階段選擇、3.抽題按鈕)
-   顏色、透明度 (0.85)、毛玻璃模糊度與圓角完全一致
    ================================================== */
 div[data-baseweb="select"] > div,
 div[role="radiogroup"],
@@ -80,7 +79,7 @@ div[data-baseweb="select"] div[data-testid="stMarkdownContainer"] p {{
     font-weight: 800 !important;
 }}
 
-/* [色塊 2] 階段選擇 (加上內距，使其成為一個完整的色塊) */
+/* [色塊 2] 階段選擇 */
 div[role="radiogroup"] {{
     padding: 12px 20px !important; 
 }}
@@ -90,27 +89,24 @@ div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {{
     font-weight: 800 !important;
 }}
 
-/* ✨ [魔法區] 將圓形單選鈕強制改裝為超大方形 Checkbox (打勾框) ✨ */
+/* 將圓形單選鈕強制改裝為超大方形 Checkbox (打勾框) */
 div[role="radiogroup"] label[data-baseweb="radio"] input + div {{
-    width: 32px !important;  /* 放大外框 */
+    width: 32px !important;  
     height: 32px !important;
-    border-radius: 8px !important; /* 變為方形 */
+    border-radius: 8px !important; 
     border: 2px solid #94A3B8 !important; 
     position: relative !important;
     background-color: #FFFFFF !important;
     margin-right: 12px !important; 
     transition: all 0.2s ease !important;
 }}
-/* 隱藏原生黑點 */
 div[role="radiogroup"] label[data-baseweb="radio"] input + div > div {{
     display: none !important; 
 }}
-/* 勾選時的背景色變化 (深藍色) */
 div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div {{
     background-color: #1E293B !important;
     border-color: #1E293B !important;
 }}
-/* 勾選時畫出超大白色勾勾 */
 div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div::after {{
     content: '';
     position: absolute;
@@ -142,7 +138,7 @@ div.stButton {{
 }}
 
 /* ==================================================
-   🎯 第四區塊：問題字卡 (維持 0.85 透明度與大圓角)
+   🎯 第四區塊：問題字卡
    ================================================== */
 .question-card {{
     background-color: rgba(255, 255, 255, 0.85) !important; 
@@ -162,8 +158,26 @@ div.stButton {{
 }}
 .hint-text {{color: #475569 !important; font-size: 20px !important;}}
 
+/* ✨ [魔法區] 純前端 CSS 骰子動畫，零延遲絕對滑順 ✨ */
+@keyframes roll-dice {{
+    0%   {{ content: '⚀'; transform: rotate(0deg) scale(1); }}
+    16%  {{ content: '⚂'; transform: rotate(15deg) scale(1.1); }}
+    33%  {{ content: '⚄'; transform: rotate(-15deg) scale(1); }}
+    50%  {{ content: '⚅'; transform: rotate(20deg) scale(1.1); }}
+    66%  {{ content: '⚁'; transform: rotate(-20deg) scale(1); }}
+    83%  {{ content: '⚃'; transform: rotate(10deg) scale(1.1); }}
+    100% {{ content: '⚀'; transform: rotate(0deg) scale(1); }}
+}}
+.dice-anim::after {{
+    content: '⚀';
+    animation: roll-dice 0.3s infinite linear;
+    display: inline-block;
+    font-size: 80px;
+    color: #1E293B;
+}}
+
 /* ==================================================
-   🎯 第五區塊：主持人專區 (淡灰色)
+   🎯 第五區塊：主持人專區
    ================================================== */
 div[data-testid="stExpander"] {{
     background-color: rgba(210, 214, 220, 0.85) !important; 
@@ -226,18 +240,16 @@ if draw_button_clicked:
     current_team_state = shared_pools[selected_team]
     
     if active_questions:
-        # 動畫階段
-        dice_faces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
-        for _ in range(12):  
-            face = random.choice(dice_faces)
-            card_placeholder.markdown(
-                f'<div class="question-card">'
-                f'<span style="font-size: 80px; color: #1E293B;">{face}</span><br>'
-                f'<span style="font-size: 22px; color: #475569; font-weight: bold;">抽取中...</span>'
-                f'</div>', 
-                unsafe_allow_html=True
-            )
-            time.sleep(0.08)  
+        # 動畫階段：呼叫純前端 CSS 動畫，不僅不會卡，還省下了網路頻寬
+        card_placeholder.markdown(
+            f'<div class="question-card">'
+            f'<div class="dice-anim"></div><br>'
+            f'<span style="font-size: 22px; color: #475569; font-weight: bold;">抽取中...</span>'
+            f'</div>', 
+            unsafe_allow_html=True
+        )
+        # 讓前端的骰子轉 0.8 秒
+        time.sleep(0.8)  
             
         # 結算階段
         if selected_mode == "🧊 暖身題":
