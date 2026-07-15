@@ -78,4 +78,14 @@ div[data-baseweb="select"] div[data-testid="stMarkdownContainer"] p {{
 div[role="radiogroup"] {{
     padding: 12px 20px !important; 
 }}
-div[role="radiogroup"] div[data
+div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {{
+    color: #1E293B !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+}}
+
+div[role="radiogroup"] label[data-baseweb="radio"] input + div {{
+    width: 32px !important;  
+    height: 32px !important;
+    border-radius: 8px !important; 
+    border: 2px solid #94A
